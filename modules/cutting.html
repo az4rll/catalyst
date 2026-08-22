@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QC CUTTING DASHBOARD | DIGITAL SYSTEM</title>
+    <script src="../assets/js/cutting.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../assets/css/cutting.css">
+</head>
+
+<body>
+
+    <div id="loading">
+        <div class="spinner"></div><span id="loading-text">PROCESSING...</span>
+    </div>
+
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <div class="main-title">QC CUTTING DASHBOARD</div>
+                <div class="sub-title">QUALITY ENGINEERING CATALYST GARMENT <span class="version-badge">v1.1</span></div>
+            </div>
+            <img src="logobag.png" alt="Theme" class="theme-logo" onclick="toggleTheme()" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="card">
+            <div class="card-header">SHIFT INFO</div>
+            <div class="input-group">
+                <label class="req">NAMA QC</label>
+                <select id="qc_name"></select>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label class="req">TANGGAL SHIFT</label>
+                    <input type="date" id="tanggal">
+                </div>
+                <div class="input-group">
+                    <label>JAM ISTIRAHAT</label>
+                    <select id="jam_istirahat" onchange="calculateShiftHours()">
+                        <option value="0" selected>0 Menit (Tanpa Istirahat)</option>
+                        <option value="30">30 Menit</option>
+                        <option value="45">45 Menit</option>
+                        <option value="60">60 Menit</option>
+                        <option value="90">90 Menit</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label class="req">SHIFT START</label>
+                    <input type="time" id="shift_start" onchange="calculateShiftHours()">
+                </div>
+                <div class="input-group">
+                    <label class="req">SHIFT END</label>
+                    <input type="time" id="shift_end" onchange="calculateShiftHours()">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>ACTUAL WORKING HOURS</label>
+                <input type="text" id="shift_hours" readonly style="text-align:center;" value="0 Hours 0 Minutes">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">PROCESS INFO</div>
+            <div class="grid-2">
+                <div class="input-group" style="grid-column: span 2;">
+                    <label class="req">PROSES QC</label>
+                    <select id="qc_process" onchange="handleProcessChange()">
+                        <option value="" disabled selected>-- Pilih Proses --</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="req">BUYER</label>
+                    <select id="buyer" onchange="handleBuyerChange()">
+                        <option value="" disabled selected>-- Memuat Data... --</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="req">STYLE</label>
+                    <select id="style">
+                        <option value="" disabled selected>-- Pilih Buyer Dulu --</option>
+                    </select>
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label class="req">LOT</label>
+                    <input type="text" id="lot" placeholder="Isi LOT" autocomplete="off" style="text-transform:uppercase;">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">PANEL ENTRY</div>
+            <div class="input-group">
+                <label class="req">PILIH PANEL</label>
+                <select id="sel_panel">
+                    <option value="" disabled selected>-- Pilih Proses Dulu --</option>
+                </select>
+            </div>
+            <div class="grid-3">
+                <div class="input-group">
+                    <label class="req">QTY INSP.</label>
+                    <input type="number" id="qty_inspect" placeholder="0" oninput="calculateDefectPct()">
+                </div>
+                <div class="input-group">
+                    <label class="req" style="color:var(--danger);">QTY DEF.</label>
+                    <input type="number" id="qty_defect" placeholder="0" oninput="calculateDefectPct()">
+                </div>
+                <div class="input-group">
+                    <label style="color:var(--danger);">% DEFECT</label>
+                    <input type="text" id="pct_defect" readonly value="0%" style="text-align:center;">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>DEFECT DETAIL</label>
+                <select id="defect_detail">
+                    <option value="" selected>- Pilih Defect (Jika Ada) -</option>
+                    <option value="STAIN">STAIN</option>
+                    <option value="YARPULL">YARPULL</option>
+                    <option value="SHADEBAR">SHADEBAR</option>
+                    <option value="HOLE">HOLE</option>
+                    <option value="BROKEN PICK">BROKEN PICK</option>
+                    <option value="LINE">LINE</option>
+                    <option value="MEASUREMENT">MEASUREMENT</option>
+                    <option value="UNPROPER CUT">UNPROPER CUT</option>
+                    <option value="PINHOLE">PINHOLE</option>
+                    <option value="INTERLINING TERLIPAT">INTERLINING TERLIPAT</option>
+                    <option value="SHOW OUT">SHOW OUT</option>
+                    <option value="STRIKE THROUGH">STRIKE THROUGH</option>
+                </select>
+            </div>
+            <button class="btn-add" onclick="addPanelToList()">+ ADD PANEL REPORT</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">SUBMITTED PANELS</div>
+            <div class="defect-list" id="active_panels_container">
+                <div class="empty-defect" id="empty_state">No panel added yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <div class="action-bar-inner">
+            <button class="btn-menu" onclick="openSheet('menuSheet')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="5" r="2" />
+                    <circle cx="12" cy="12" r="2" />
+                    <circle cx="12" cy="19" r="2" />
+                </svg>
+            </button>
+            <button class="btn-submit" onclick="submitData()">SAVE DATA</button>
+        </div>
+    </div>
+
+    <div id="menuSheet" class="sheet-overlay" onclick="closeSheet('menuSheet',event)">
+        <div class="bottom-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <button class="sheet-btn" style="color:var(--danger)" onclick="closeSheet('menuSheet'); setTimeout(()=>resetForm(false),300)">RESET FORM</button>
+            <button class="sheet-btn" style="color:var(--warning)" onclick="closeSheet('menuSheet'); setTimeout(()=>openSheet('spvSheet'),300)">MENU SPV</button>
+        </div>
+    </div>
+
+    <div id="spvSheet" class="sheet-overlay" onclick="closeSheet('spvSheet',event)">
+        <div class="bottom-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <button class="sheet-btn" style="color:var(--accent-primary)" onclick="closeSheet('spvSheet'); setTimeout(()=>kelolaBuyerStyle(),300)">KELOLA BUYER & STYLE</button>
+            <button class="sheet-btn" style="color:var(--warning)" onclick="closeSheet('spvSheet'); setTimeout(()=>tutupShiftHarian(),300)">TUTUP SHIFT HARIAN</button>
+        </div>
+    </div>
+
+    
+</body>
+</html>
