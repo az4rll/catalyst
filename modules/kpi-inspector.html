@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KPI INSPECTOR DASHBOARD</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/kpi-inspector.css">
+</head>
+<body>
+    <div id="globalLoading">
+        <div class="global-spinner"></div>
+        <div id="loadingText">LOADING DATA...</div>
+    </div>
+
+    <div id="tooltipPopup" class="tooltip-popup" onclick="event.stopPropagation()"></div>
+
+    <div class="filter-overlay" id="filterOverlay" onclick="closeFilter()"></div>
+    <div class="filter-panel" id="filterPanel">
+        <div class="fp-head">
+            <h3 id="fp_title">FILTER & CONFIGURATION</h3>
+            <button class="btn-icon" style="padding:4px 8px;" onclick="closeFilter()" id="fp_close_btn">X CLOSE</button>
+        </div>
+        <div class="fp-body">
+            <div class="input-grp">
+                <label id="fp_preset_label">QUICK PRESET</label>
+                <div class="preset-wrap">
+                    <button class="preset-btn" onclick="setPreset('today')" data-key="today">TODAY</button>
+                    <button class="preset-btn" onclick="setPreset('yesterday')" data-key="yesterday">YESTERDAY</button>
+                    <button class="preset-btn" onclick="setPreset('this_week')" data-key="this_week">THIS WEEK</button>
+                    <button class="preset-btn" onclick="setPreset('last_week')" data-key="last_week">LAST WEEK</button>
+                    <button class="preset-btn" onclick="setPreset('this_month')" data-key="this_month">THIS MONTH</button>
+                    <button class="preset-btn" onclick="setPreset('last_month')" data-key="last_month">LAST MONTH</button>
+                    <button class="preset-btn" onclick="setPreset('last_7')" data-key="last_7">7 DAYS</button>
+                    <button class="preset-btn" onclick="setPreset('last_30')" data-key="last_30">30 DAYS</button>
+                </div>
+            </div>
+            <div class="input-grp">
+                <label id="fp_start_label">FROM DATE</label>
+                <input type="date" id="f_start">
+            </div>
+            <div class="input-grp">
+                <label id="fp_end_label">TO DATE</label>
+                <input type="date" id="f_end">
+            </div>
+            <div class="input-grp">
+                <label id="fp_section_label">SECTION</label>
+                <div id="ms_section" class="mul-sel" style="width:100%"></div>
+            </div>
+            <div class="input-grp" id="wrap_f_posisi">
+                <label id="fp_posisi_label">SEWING POSITION</label>
+                <select id="f_posisi">
+                    <option value="ALL" id="fp_pos_all">ALL POSITIONS</option>
+                    <option value="ENDLINE" id="fp_pos_endline">ENDLINE 100 PERCENT</option>
+                    <option value="INLINE" id="fp_pos_inline">INLINE TLS</option>
+                </select>
+            </div>
+            <div class="input-grp">
+                <label id="fp_tipe_label">SEWING INSPECTION TYPE</label>
+                <select id="f_tipe">
+                    <option value="100" selected id="fp_tipe_100">ENDLINE 100 PERCENT</option>
+                    <option value="TLS" id="fp_tipe_tls">INLINE TLS</option>
+                </select>
+            </div>
+            <div class="input-grp">
+                <label id="fp_status_label">DATA STATUS</label>
+                <select id="f_status">
+                    <option value="ORI" selected>ORI</option>
+                </select>
+            </div>
+            <div class="input-grp">
+                <label id="fp_topn_label">TOP N INSPECTOR LEADERBOARD</label>
+                <select id="f_topn" onchange="renderLeaderboards()">
+                    <option value="5">TOP 5</option>
+                    <option value="10" selected>TOP 10</option>
+                    <option value="15">TOP 15</option>
+                    <option value="20">TOP 20</option>
+                    <option value="99" id="fp_topn_all">ALL</option>
+                </select>
+            </div>
+            <div style="padding:4px 0;border-top:1px solid var(--border);margin-top:4px">
+                <div id="fp_reset_label" style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">RESET VIEW</div>
+                <button class="btn-icon" id="fp_reset_btn" style="width:100%;justify-content:center;background:var(--danger);color:#fff;border-color:var(--danger);padding:9px" onclick="resetDashboard()">RESET FILTER & LAYOUT</button>
+            </div>
+        </div>
+        <div class="fp-foot">
+            <button class="btn-icon" id="fp_apply_btn" style="width:100%;justify-content:center;background:var(--text-main);color:var(--bg-card);border-color:var(--text-main);padding:11px;font-size:11px" onclick="applyFilter()">APPLY FILTER</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" id="modalBox">
+            <div class="modal-head">
+                <div class="modal-title" id="modalTitle">DETAIL</div>
+                <button class="btn-icon" id="modal_close_btn" style="padding:4px 8px;" onclick="closeModalDirect()">X CLOSE</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <div class="topbar" id="topbar">
+        <div class="title-wrap">
+            <h1 id="titleMain">KPI INSPECTOR</h1>
+            <p id="titleSub">LOADING</p>
+        </div>
+        <div class="topbar-actions" id="topActions">
+            <button class="kebab-btn" onclick="toggleDropdown()" title="Menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                </svg>
+            </button>
+            <div class="dropdown-menu" id="dropMenu">
+                <button class="dd-btn" id="dd_filter_btn" onclick="openFilter()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    FILTER DATA
+                </button>
+                <button class="dd-btn" id="dd_screenshot_btn" onclick="takeScreenshot()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    SCREENSHOT
+                </button>
+                <button class="dd-btn" id="dd_export_pdf_btn" onclick="openPdfExportModal()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    EXPORT PDF
+                </button>
+                <button class="dd-btn" id="dd_theme_btn" onclick="toggleTheme()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    CHANGE THEME
+                </button>
+                <button class="dd-btn" id="dd_exit_btn" onclick="window.location.href='../index.html'" style="color:var(--danger);border-color:var(--danger)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    EXIT
+                </button>
+                <div class="dd-lang-wrap">
+                    <button class="dd-lang-btn" id="lang_en_btn" onclick="setLang('en')">EN</button>
+                    <button class="dd-lang-btn active" id="lang_id_btn" onclick="setLang('id')">ID</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="kpi-grid" id="kpiSummaryGrid">
+        <div class="kpi-box">
+            <div class="kpi-box-label" id="kpi_lbl_insp">TOTAL INSPECTOR</div>
+            <div class="kpi-box-value" id="kpi_total_insp">0</div>
+            <div class="kpi-box-sub" id="kpi_sub_total_insp">PEOPLE</div>
+        </div>
+        <div class="kpi-box">
+            <div class="kpi-box-label" id="kpi_lbl_qty">TOTAL INSPECT PCS</div>
+            <div class="kpi-box-value" id="kpi_total_qty">0</div>
+            <div class="kpi-box-sub" id="kpi_sub_qty">PCS</div>
+        </div>
+        <div class="kpi-box">
+            <div class="kpi-box-label" id="kpi_lbl_pph">TEAM AVG PPH</div>
+            <div class="kpi-box-value" style="color:var(--gold)" id="kpi_avg_pph">0</div>
+            <div class="kpi-box-sub" id="kpi_sub_pph">PCS PER HOUR</div>
+        </div>
+        <div class="kpi-box">
+            <div class="kpi-box-label" id="kpi_lbl_jam">AVG EFFECTIVE HOURS</div>
+            <div class="kpi-box-value" id="kpi_avg_jam">0</div>
+            <div class="kpi-box-sub" id="kpi_sub_jam">HOURS PER SHIFT</div>
+        </div>
+        <div class="kpi-box">
+            <div class="kpi-box-label" id="kpi_lbl_def">TOTAL DEFECTS FOUND</div>
+            <div class="kpi-box-value" style="color:var(--danger)" id="kpi_total_def">0</div>
+            <div class="kpi-box-sub" id="kpi_sub_def">PCS</div>
+        </div>
+        <div class="kpi-box">
+            <div class="kpi-box-label" id="kpi_lbl_rate">AVG DEFECT RATE</div>
+            <div class="kpi-box-value" style="color:var(--danger)" id="kpi_avg_rate">0%</div>
+            <div class="kpi-box-sub" id="kpi_sub_rate">PERCENT</div>
+        </div>
+    </div>
+
+    <div class="card" id="cardSectionScores">
+        <div class="card-head">
+            <div class="card-head-title" id="card_section_title">SECTION PERFORMANCE COMPARISON</div>
+            <div class="card-controls">
+                <button class="btn-ai" onclick="showInsight('section_compare')" title="AI Analysis">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2z"/></svg>
+                </button>
+                <button class="btn-toggle" onclick="toggleSection('wrapSectionScores',this)">-</button>
+            </div>
+        </div>
+        <div id="wrapSectionScores" style="padding-bottom:14px;">
+            <div class="score-boxes" id="sectionScores"></div>
+        </div>
+        <div class="insight-wrap" id="insight_section_compare_wrap">
+            <div class="insight-panel"><div class="insight-inner" id="insight_section_compare_inner"></div></div>
+        </div>
+    </div>
+
+    <div class="leaderboard-grid" id="leaderboardSection">
+        <div class="card" id="cardTopSew">
+            <div class="section-header">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span class="section-badge badge-sew">SEWING</span>
+                    <span style="font-size:10px;font-weight:700;color:var(--text-sub)" id="lbl_top_sew">TOP 10</span>
+                </div>
+                <div class="card-controls">
+                    <button class="btn-ai" onclick="showInsight('sew_top')" title="AI Analysis">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2z"/></svg>
+                    </button>
+                    <button class="icon-menu" onclick="document.getElementById('dd_sew_filter').classList.toggle('open')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    </button>
+                    <div class="dropdown-menu" id="dd_sew_filter" style="right:30px;top:100%">
+                        <div class="input-grp" style="margin-bottom:6px">
+                            <label id="sew_sort_label">SORT BY</label>
+                            <select id="sort_lb_sew" onchange="renderLeaderboards()">
+                                <option value="inspect_desc" id="sew_opt_inspect_desc">MOST INSPECT</option>
+                                <option value="inspect_asc" id="sew_opt_inspect_asc">LEAST INSPECT</option>
+                                <option value="pph_desc" id="sew_opt_pph_desc">HIGHEST PPH</option>
+                                <option value="pph_asc" id="sew_opt_pph_asc">LOWEST PPH</option>
+                                <option value="defect_desc" id="sew_opt_defect_desc">MOST DEFECTS</option>
+                                <option value="defect_asc" id="sew_opt_defect_asc">LEAST DEFECTS</option>
+                                <option value="rate_desc" id="sew_opt_rate_desc">HIGHEST DEF RATE</option>
+                                <option value="rate_asc" id="sew_opt_rate_asc">LOWEST DEF RATE</option>
+                            </select>
+                        </div>
+                        <div class="input-grp">
+                            <label id="sew_name_label">FILTER BY NAME</label>
+                            <div class="mul-sel" id="ms_lb_sew_name"></div>
+                        </div>
+                    </div>
+                    <button class="btn-toggle" onclick="toggleSection('rankSew',this)">-</button>
+                </div>
+            </div>
+            <div id="rankSew" class="rank-list"></div>
+            <div class="insight-wrap" id="insight_sew_top_wrap">
+                <div class="insight-panel"><div class="insight-inner" id="insight_sew_top_inner"></div></div>
+            </div>
+        </div>
+
+        <div class="card" id="cardTopFin">
+            <div class="section-header">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span class="section-badge badge-fin">FINISHING</span>
+                    <span style="font-size:10px;font-weight:700;color:var(--text-sub)" id="lbl_top_fin">TOP 10</span>
+                </div>
+                <div class="card-controls">
+                    <button class="btn-ai" onclick="showInsight('fin_top')" title="AI Analysis">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2z"/></svg>
+                    </button>
+                    <button class="icon-menu" onclick="document.getElementById('dd_fin_filter').classList.toggle('open')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    </button>
+                    <div class="dropdown-menu" id="dd_fin_filter" style="right:30px;top:100%">
+                        <div class="input-grp" style="margin-bottom:6px">
+                            <label id="fin_sort_label">SORT BY</label>
+                            <select id="sort_lb_fin" onchange="renderLeaderboards()">
+                                <option value="inspect_desc" id="fin_opt_inspect_desc">MOST INSPECT</option>
+                                <option value="inspect_asc" id="fin_opt_inspect_asc">LEAST INSPECT</option>
+                                <option value="pph_desc" id="fin_opt_pph_desc">HIGHEST PPH</option>
+                                <option value="pph_asc" id="fin_opt_pph_asc">LOWEST PPH</option>
+                                <option value="defect_desc" id="fin_opt_defect_desc">MOST DEFECTS</option>
+                                <option value="defect_asc" id="fin_opt_defect_asc">LEAST DEFECTS</option>
+                                <option value="rate_desc" id="fin_opt_rate_desc">HIGHEST DEF RATE</option>
+                                <option value="rate_asc" id="fin_opt_rate_asc">LOWEST DEF RATE</option>
+                            </select>
+                        </div>
+                        <div class="input-grp">
+                            <label id="fin_name_label">FILTER BY NAME</label>
+                            <div class="mul-sel" id="ms_lb_fin_name"></div>
+                        </div>
+                    </div>
+                    <button class="btn-toggle" onclick="toggleSection('rankFin',this)">-</button>
+                </div>
+            </div>
+            <div id="rankFin" class="rank-list"></div>
+            <div class="insight-wrap" id="insight_fin_top_wrap">
+                <div class="insight-panel"><div class="insight-inner" id="insight_fin_top_inner"></div></div>
+            </div>
+        </div>
+
+        <div class="card" id="cardTopWas">
+            <div class="section-header">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span class="section-badge badge-was">WASHING</span>
+                    <span style="font-size:10px;font-weight:700;color:var(--text-sub)" id="lbl_top_was">TOP 10</span>
+                </div>
+                <div class="card-controls">
+                    <button class="btn-ai" onclick="showInsight('was_top')" title="AI Analysis">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2z"/></svg>
+                    </button>
+                    <button class="icon-menu" onclick="document.getElementById('dd_was_filter').classList.toggle('open')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    </button>
+                    <div class="dropdown-menu" id="dd_was_filter" style="right:30px;top:100%">
+                        <div class="input-grp" style="margin-bottom:6px">
+                            <label id="was_sort_label">SORT BY</label>
+                            <select id="sort_lb_was" onchange="renderLeaderboards()">
+                                <option value="inspect_desc" id="was_opt_inspect_desc">MOST INSPECT</option>
+                                <option value="inspect_asc" id="was_opt_inspect_asc">LEAST INSPECT</option>
+                                <option value="pph_desc" id="was_opt_pph_desc">HIGHEST PPH</option>
+                                <option value="pph_asc" id="was_opt_pph_asc">LOWEST PPH</option>
+                                <option value="defect_desc" id="was_opt_defect_desc">MOST DEFECTS</option>
+                                <option value="defect_asc" id="was_opt_defect_asc">LEAST DEFECTS</option>
+                                <option value="rate_desc" id="was_opt_rate_desc">HIGHEST DEF RATE</option>
+                                <option value="rate_asc" id="was_opt_rate_asc">LOWEST DEF RATE</option>
+                            </select>
+                        </div>
+                        <div class="input-grp">
+                            <label id="was_name_label">FILTER BY NAME</label>
+                            <div class="mul-sel" id="ms_lb_was_name"></div>
+                        </div>
+                    </div>
+                    <button class="btn-toggle" onclick="toggleSection('rankWas',this)">-</button>
+                </div>
+            </div>
+            <div id="rankWas" class="rank-list"></div>
+            <div class="insight-wrap" id="insight_was_top_wrap">
+                <div class="insight-panel"><div class="insight-inner" id="insight_was_top_inner"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="cardAdvancedAnalytics">
+        <div class="card-head">
+            <div class="card-head-title" id="lbl_adv_title">ADVANCED ANALYTICS: SPEED VS QUALITY</div>
+            <div class="card-controls">
+                <button class="btn-ai" onclick="showInsight('adv_scatter')" title="AI Analysis">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2z"/></svg>
+                </button>
+                <select id="adv_section_sel" onchange="renderAdvancedAnalytics()" style="padding:4px;font-size:10px;font-weight:bold;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text-main);outline:none;">
+                    <option value="ALL" id="adv_opt_all">ALL SECTIONS</option>
+                    <option value="SEWING">SEWING</option>
+                    <option value="FINISHING">FINISHING</option>
+                    <option value="WASHING">WASHING</option>
+                </select>
+                <button class="btn-icon" onclick="resetChart()" style="padding:4px 8px; font-size:9px; cursor:pointer;">RESET ZOOM</button>
+                <button class="btn-toggle" onclick="toggleSection('wrapAdvAnalytics',this)">-</button>
+            </div>
+        </div>
+        <div id="wrapAdvAnalytics" style="padding-bottom:14px;">
+            <div style="padding:14px;">
+                <div style="position:relative;height:450px;width:100%;"><canvas id="scatterChart"></canvas></div>
+            </div>
+            <div style="border-top:1px dashed var(--border); margin: 14px 0;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 0 14px 10px 14px;">
+                <div style="font-size:11px; font-weight:800; color:var(--text-sub); text-transform:uppercase; letter-spacing:0.5px;" id="lbl_adv_trend">PERFORMANCE TREND (PPH VS DEFECT RATE)</div>
+                <button class="btn-ai" onclick="showInsight('adv_trend')" title="AI Analysis">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2z"/></svg>
+                </button>
+            </div>
+            <div style="padding:0 14px;">
+                <div style="position:relative;height:350px;width:100%;"><canvas id="trendChart"></canvas></div>
+            </div>
+            <div class="insight-wrap" id="insight_adv_trend_wrap">
+                <div class="insight-panel"><div class="insight-inner" id="insight_adv_trend_inner"></div></div>
+            </div>
+        </div>
+        <div class="insight-wrap" id="insight_adv_scatter_wrap">
+            <div class="insight-panel"><div class="insight-inner" id="insight_adv_scatter_inner"></div></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/kpi-inspector.js"></script>
+</body>
+</html>

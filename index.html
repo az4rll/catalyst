@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>CATALYST - QC DRESS 1 | DIGITAL SYSTEM</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="logobag.png">
+    <link rel="apple-touch-icon" href="logoqcback.jpeg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-title" content="CATALYST">
+    <meta name="application-name" content="CATALYST">
+    <meta name="theme-color" content="#f1f5f9">
+
+    <link rel="stylesheet" href="assets/css/index.css">
+</head>
+
+<body>
+
+    <div id="splash-screen"></div>
+
+    <div class="top-nav" style="display:flex; gap:8px;">
+        <div class="kebab-icon" onclick="openProfileSheet()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+        </div>
+        <div class="kebab-icon" onclick="openMenuSheet()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="5" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="19" r="2"></circle>
+            </svg>
+        </div>
+    </div>
+
+    <button class="fab-kamus" id="fabKamus" title="Buka Kamus QC">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+        </svg>
+    </button>
+
+    <div class="container">
+        <div class="logo-container">
+            <img src="logobag.png" alt="QC System Logo" class="logo" id="appLogo" onclick="toggleTheme()"
+                title="Ketuk untuk ganti tema manual" onerror="this.style.display='none'">
+        </div>
+
+        <h1 class="app-title" onclick="showMiniPopup()">CATALYST</h1>
+        <div class="subtitle-secondary">QC DRESS 1 REPORT</div>
+        <div class="greeting-text" id="greetingLabel"></div>
+
+        <div class="skeleton-grid" id="skeletonMenu">
+            <div class="skeleton-compact"></div>
+            <div class="skeleton-compact"></div>
+            <div class="skeleton-compact"></div>
+            <div class="skeleton-compact"></div>
+            <div class="skeleton-compact"></div>
+            <div class="skeleton-compact"></div>
+        </div>
+
+        <div class="menu-grid" id="choiceMenu">
+            <button class="btn-compact" onclick="document.body.style.opacity='0'; setTimeout(() => { window.location.href='actify.html'; }, 400);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="z-index:2;">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                <span style="z-index:2;">ACTIFY</span>
+            </button>
+            <button class="btn-compact" onclick="showReportMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="z-index:2;">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span style="z-index:2;">REPORT</span>
+            </button>
+        </div>
+
+        <div class="menu-grid" id="mainMenu" style="display: none;">
+            <button class="btn-compact" onclick="navTo('cutting.html', 'cutting')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="z-index:2;">
+                    <circle cx="6" cy="6" r="3"></circle>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+                    <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+                    <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+                </svg>
+                <span style="z-index:2;">Cutting</span>
+            </button>
+            <button class="btn-compact" onclick="navTo('sewing.html', 'sewing')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="z-index:2;">
+                    <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path>
+                </svg>
+                <span style="z-index:2;">Sewing</span>
+            </button>
+            <button class="btn-compact" onclick="navTo('finishing.html', 'finishing')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="z-index:2;">
+                    <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                <span style="z-index:2;">Finishing</span>
+            </button>
+            <button class="btn-compact" onclick="navTo('washing.html', 'washing')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="z-index:2;">
+                    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"></path>
+                </svg>
+                <span style="z-index:2;">Washing</span>
+            </button>
+            <button class="btn-compact" onclick="navTo('final.html', 'final')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="z-index:2;">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <path d="M9 15l2 2 4-4"></path>
+                </svg>
+                <span style="z-index:2;">Final</span>
+            </button>
+            <button class="btn-compact btn-sample"
+                onclick="navToSample('https://visualqctracker.vercel.app/index.html', 'sample')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="z-index:2;">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span style="z-index:2;">Sample</span>
+            </button>
+        </div>
+
+        <div class="footer">
+            DEVELOPED BY <br><br><b>QUALITY ENGINEERING CATALYST</b>
+        </div>
+    </div>
+
+    <div id="profileSheet" class="sheet-overlay" onclick="closeProfileSheet(event)">
+        <div class="bottom-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+
+            <button class="sheet-btn" onclick="toggleSPVMode()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                SPV ACCESS MODE
+            </button>
+
+            <button class="sheet-btn" onclick="toggleGuestMode()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                GUEST ACCESS MODE
+            </button>
+        </div>
+    </div>
+
+    <div id="menuSheet" class="sheet-overlay" onclick="closeMenuSheet(event)">
+        <div class="bottom-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+
+            <button class="sheet-btn" onclick="navToSPV()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                SPV MONITORING
+            </button>
+
+            <button class="sheet-btn" onclick="showTrackerMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                TRACKER DATA
+            </button>
+
+            <button class="sheet-btn" onclick="showInfoSistem()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                INFO SISTEM
+            </button>
+
+            <button class="sheet-btn" id="btnInstall" style="display:none;" onclick="installApp()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                INSTALL APP
+            </button>
+        </div>
+    </div>
+
+    <script src="assets/js/index.js"></script>
+</body>
+
+</html>
