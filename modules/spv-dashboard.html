@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QC DASHBOARD | CATALYST GARMENT</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Black+Ops+One&family=Inter:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="../assets/css/spv-dashboard.css">
+</head>
+
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div id="loading-text">PLEASE WAIT...</div>
+    </div>
+    <div class="filter-overlay" id="filterOverlay" onclick="closeFilter()"></div>
+
+    <div class="drill-modal-overlay" id="drillModalOverlay" onclick="closeDrillModal(event)">
+        <div class="drill-modal" id="drillModal">
+            <div class="drill-modal-header">
+                <div class="drill-modal-title" id="drillModalTitle">DATA DETAILS</div>
+                <button class="btn-action" style="padding: 4px 8px; border:none;" onclick="closeDrillModal()">✕
+                    CLOSE</button>
+            </div>
+            <div class="drill-modal-body" id="drillModalBody"></div>
+        </div>
+    </div>
+
+    <div class="filter-panel" id="filterPanel">
+        <div class="filter-header">
+            <h2 style="margin: 0; font-size: 14px; font-weight: 900; color: var(--text-main); letter-spacing: 0.5px;">
+                DATA FILTER</h2>
+            <button class="btn-action" style="padding: 4px 8px; border:none;" onclick="closeFilter()">X</button>
+        </div>
+        <div class="filter-body">
+            <div class="input-group">
+                <label>INSPECTION TYPE (SEWING):</label>
+                <select id="f_tipe">
+                    <option value="100" selected>ENDLINE (100%)</option>
+                    <option value="TLS">INLINE (TLS)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>QUICK PRESET:</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;">
+                    <button class="preset-btn" onclick="setPreset('today')">TODAY</button>
+                    <button class="preset-btn" onclick="setPreset('yesterday')">YESTERDAY</button>
+                    <button class="preset-btn" onclick="setPreset('this_week')">THIS WEEK</button>
+                    <button class="preset-btn" onclick="setPreset('last_week')">LAST WEEK</button>
+                    <button class="preset-btn" onclick="setPreset('this_month')">THIS MONTH</button>
+                    <button class="preset-btn" onclick="setPreset('last_month')">LAST MONTH</button>
+                    <button class="preset-btn" onclick="setPreset('last_7')">7 DAYS</button>
+                    <button class="preset-btn" onclick="setPreset('last_30')">30 DAYS</button>
+                </div>
+                <div
+                    style="margin-top:10px; font-size:10px; font-weight:800; color:var(--text-sub); text-transform:uppercase;">
+                    SCREENSHOT PRESET:</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;">
+                    <button class="preset-btn" style="background:var(--accent-primary);color:#fff;"
+                        onclick="setScreenshotPreset('SEW')">SS DAILY SEW</button>
+                    <button class="preset-btn" style="background:var(--accent-gold);color:#fff;"
+                        onclick="setScreenshotPreset('FIN')">SS DAILY FIN</button>
+                    <button class="preset-btn" style="background:var(--success);color:#fff;"
+                        onclick="setScreenshotPreset('WAS')">SS DAILY WAS</button>
+                </div>
+                <div
+                    style="margin-top:10px; font-size:10px; font-weight:800; color:var(--text-sub); text-transform:uppercase;">
+                    RESET VIEW:</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;">
+                    <button class="preset-btn"
+                        style="width: 100%; justify-content: center; background: var(--danger); color: white; border: none; padding: 8px; font-size: 11px;"
+                        onclick="resetDashboard()">
+                        🔄 RESET FILTER & LAYOUT
+                    </button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>FROM:</label>
+                <input type="date" id="f_start">
+            </div>
+            <div class="input-group">
+                <label>TO:</label>
+                <input type="date" id="f_end">
+            </div>
+            <div class="input-group">
+                <label>AREA (MULTIPLE):</label>
+                <div class="mul-select" id="ms_f_area"></div>
+            </div>
+        </div>
+        <div class="filter-footer">
+            <button class="btn-action"
+                style="width: 100%; justify-content: center; background: var(--accent-primary); color: white; border: none; padding: 10px; font-size: 11px;"
+                onclick="applyFilter()">
+                APPLY FILTER
+            </button>
+        </div>
+    </div>
+    <div class="topbar" id="topBarElement">
+        <div class="title-group" id="titleGroupElement">
+            <h1 id="mainTitleText">QC DASHBOARD</h1>
+            <p id="dashboardSubtitle">WAITING...</p>
+        </div>
+
+        <div class="top-btn-group" id="topBtnGroup">
+            <button class="kebab-toggle" onclick="toggleKebabMenu()" title="Menu Action">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="1.5"></circle>
+                    <circle cx="12" cy="5" r="1.5"></circle>
+                    <circle cx="12" cy="19" r="1.5"></circle>
+                </svg>
+            </button>
+
+            <div class="kebab-dropdown" id="kebabDropdown">
+                <button class="btn-dropdown" onclick="openFilter()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    FILTER DATA
+                </button>
+                <button class="btn-dropdown" onclick="takeScreenshot()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                        </path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    SCREENSHOT
+                </button>
+                <button class="btn-dropdown" onclick="toggleTheme()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    CHANGE THEME
+                </button>
+                <button class="btn-dropdown" onclick="exportPDF()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    EXPORT PDF
+                </button>
+                <button class="btn-dropdown" onclick="showHoltsInfo()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    INFO
+                </button>
+                <button class="btn-dropdown" style="color: var(--danger); border-color: var(--danger);"
+                    onclick="window.location.href='../index.html'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    EXIT
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="dashboard-grid">
+        <div class="glass-card">
+            <div class="kpi-title">TOTAL INSPECT</div>
+            <div class="kpi-value" id="kpi_insp">0</div>
+            <div class="kpi-subtext" id="kpi_sub_insp"></div>
+        </div>
+        <div class="glass-card">
+            <div class="kpi-title">TOTAL GOOD</div>
+            <div class="kpi-value" style="color: var(--success);" id="kpi_good">0</div>
+            <div class="kpi-subtext" id="kpi_sub_good"></div>
+        </div>
+        <div class="glass-card">
+            <div class="kpi-title">TOTAL DEFECT</div>
+            <div class="kpi-value" style="color: var(--danger);" id="kpi_def">0</div>
+            <div class="kpi-subtext" id="kpi_sub_def"></div>
+        </div>
+        <div class="glass-card">
+            <div class="kpi-title">OVERALL RATE</div>
+            <div class="kpi-value" style="color: var(--accent-gold);" id="kpi_rate">0.00%</div>
+            <div class="kpi-subtext" id="kpi_sub_rate"></div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="kpi-title">
+            TREND DEFECT RATE
+            <div class="kpi-title-controls">
+                <button class="btn-insight" onclick="showInsight('trend')" title="Predictive Analysis"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></button>
+                <div class="zoom-controls">
+                    <span class="zoom-hint">🖱 Scroll/Pinch Zoom |</span>
+                    <button class="zoom-btn" onclick="resetTrendZoom()" title="Reset Zoom">RESET ZOOM</button>
+                </div>
+                <button class="btn-toggle" onclick="toggleVisibility('wrap_trend', this)" title="Hide/Show">-</button>
+            </div>
+        </div>
+        <div class="chart-container-lg" id="wrap_trend"><canvas id="trendChart"></canvas></div>
+        <div class="insight-wrapper" id="insight_trend_wrapper">
+            <div class="insight-panel">
+                <div class="insight-inner" id="insight_trend_inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="kpi-title">
+            AVERAGE SCORE EACH SECTION
+            <div class="kpi-title-controls">
+                <button class="btn-insight" onclick="showInsight('avg')" title="Predictive Analysis"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></button>
+                <button class="btn-toggle"
+                    onclick="document.getElementById('fb_avg_sec').classList.toggle('hidden-content')" title="Filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </button>
+                <button class="btn-toggle" onclick="toggleVisibility('wrap_avg_group', this)">-</button>
+            </div>
+        </div>
+        <div class="chart-filter-bar hidden-content" id="fb_avg_sec">
+            <div class="mul-select" id="ms_slicer_avg_sec" style="max-width: 140px;"></div>
+        </div>
+        <div id="wrap_avg_group">
+            <div class="score-container" id="wrap_avg">
+                <div class="score-box" id="score_box_sew">
+                    <div class="score-label">SEWING</div>
+                    <div class="score-value" id="score_avg_sew" style="color: var(--text-main);">0%</div>
+                </div>
+                <div class="score-box" id="score_box_fin">
+                    <div class="score-label">FINISHING</div>
+                    <div class="score-value" id="score_avg_fin" style="color: var(--accent-gold);">0%</div>
+                </div>
+                <div class="score-box" id="score_box_was">
+                    <div class="score-label">WASHING</div>
+                    <div class="score-value" id="score_avg_was" style="color: var(--success);">0%</div>
+                </div>
+            </div>
+            <div class="chart-container-sm" style="height: 160px; padding: 0;">
+                <canvas id="sectionCompareChart"></canvas>
+            </div>
+        </div>
+        <div class="insight-wrapper" id="insight_avg_wrapper">
+            <div class="insight-panel">
+                <div class="insight-inner" id="insight_avg_inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="kpi-title">
+            <span>DAILY PRODUCTION VOLUME</span>
+            <div class="kpi-title-controls">
+                <button class="btn-insight" onclick="showInsight('volume')" title="Predictive Analysis"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></button>
+                <button class="btn-toggle"
+                    onclick="document.getElementById('fb_vol').classList.toggle('hidden-content')" title="Filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </button>
+                <button class="btn-toggle" onclick="toggleVisibility('wrap_vol', this)">-</button>
+            </div>
+        </div>
+        <div class="chart-filter-bar hidden-content" id="fb_vol">
+            <div class="mul-select" id="ms_slicer_vol_area" style="max-width: 180px;"></div>
+        </div>
+        <div class="chart-container-lg" id="wrap_vol"><canvas id="volumeChart"></canvas></div>
+        <div class="insight-wrapper" id="insight_volume_wrapper">
+            <div class="insight-panel">
+                <div class="insight-inner" id="insight_volume_inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="kpi-title">
+            <span>EACH LINE PERFORMANCE (SEWING)</span>
+            <div class="kpi-title-controls">
+                <button class="btn-insight" onclick="showInsight('sew_perf')" title="Predictive Analysis"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></button>
+                <div class="zoom-controls">
+                    <span class="zoom-hint">🖱 Scroll/Pinch Zoom |</span>
+                    <button class="zoom-btn" onclick="resetSewPerfZoom()" title="Reset Zoom">RESET ZOOM</button>
+                </div>
+                <button class="btn-toggle"
+                    onclick="document.getElementById('fb_sew_perf').classList.toggle('hidden-content')" title="Filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </button>
+                <button class="btn-toggle" onclick="toggleVisibility('wrap_sew_perf', this)">-</button>
+            </div>
+        </div>
+        <div class="chart-filter-bar hidden-content" id="fb_sew_perf">
+            <select id="sort_sew_perf" onchange="triggerRenderSewingPerf()"
+                style="padding: 4px; font-size: 10px; font-weight:700; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-line); border-radius: var(--radius-sm); outline: none;">
+                <option value="line_asc">SORT: LINE</option>
+                <option value="rate_desc">SORT: HIGHEST RATE</option>
+                <option value="rate_asc">SORT: LOWEST RATE</option>
+                <option value="good_desc">SORT: HIGHEST GOOD</option>
+                <option value="good_asc">SORT: LOWEST GOOD</option>
+            </select>
+            <div class="mul-select" id="ms_slicer_sew_perf" style="max-width: 180px;"></div>
+        </div>
+        <div class="chart-container-lg" id="wrap_sew_perf"><canvas id="sewingPerfChart"></canvas></div>
+        <div class="insight-wrapper" id="insight_sew_perf_wrapper">
+            <div class="insight-panel">
+                <div class="insight-inner" id="insight_sew_perf_inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="kpi-title">
+            <span>DAILY PERFORMANCE (SEWING ONLY)</span>
+            <div class="kpi-title-controls">
+                <button class="btn-insight" onclick="showInsight('daily')" title="Predictive Analysis"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></button>
+                <div class="zoom-controls">
+                    <span class="zoom-hint">🖱 Scroll/Pinch Zoom |</span>
+                    <button class="zoom-btn" onclick="resetDailyLineZoom()" title="Reset Zoom">RESET ZOOM</button>
+                </div>
+                <button class="btn-toggle"
+                    onclick="document.getElementById('fb_daily_line').classList.toggle('hidden-content')"
+                    title="Filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </button>
+                <button class="btn-toggle" onclick="toggleVisibility('wrap_daily_line', this)">-</button>
+            </div>
+        </div>
+        <div class="chart-filter-bar hidden-content" id="fb_daily_line">
+            <div class="mul-select" id="ms_slicer_daily_line" style="max-width: 160px;"></div>
+            <div class="mul-select" id="ms_slicer_daily_buyer" style="max-width: 140px;"></div>
+            <div class="mul-select" id="ms_slicer_daily_style" style="max-width: 140px;"></div>
+        </div>
+        <div class="chart-container-lg" id="wrap_daily_line"><canvas id="dailyLineChart"></canvas></div>
+        <div class="insight-wrapper" id="insight_daily_wrapper">
+            <div class="insight-panel">
+                <div class="insight-inner" id="insight_daily_inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="kpi-title">
+            <span id="title_fin_perf">EACH BUYER/STYLE PERFORMANCE (FINISHING)</span>
+            <div class="kpi-title-controls">
+                <button class="btn-insight" onclick="showInsight('fin_perf')" title="Predictive Analysis"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></button>
+                <div class="zoom-controls">
+                    <span class="zoom-hint">🖱 Scroll/Pinch Zoom |</span>
+                    <button class="zoom-btn" onclick="resetFinPerfZoom()" title="Reset Zoom">RESET ZOOM</button>
+                </div>
+                <button class="btn-toggle"
+                    onclick="document.getElementById('fb_fin_perf').classList.toggle('hidden-content')" title="Filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </button>
+                <button class="btn-toggle" onclick="toggleVisibility('wrap_fin_perf', this)">-</button>
+            </div>
+        </div>
+        <div class="chart-filter-bar hidden-content" id="fb_fin_perf">
+            <select id="sort_fin_perf" onchange="triggerRenderFinishingPerf()"
+                style="padding: 4px; font-size: 10px; font-weight:700; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-line); border-radius: var(--radius-sm); outline: none;">
+                <option value="insp_desc">SORT: HIGHEST INSPECT</option>
+                <option value="insp_asc">SORT: LOWEST INSPECT</option>
+                <option value="rate_desc">SORT: HIGHEST RATE</option>
+                <option value="rate_asc">SORT: LOWEST RATE</option>
+                <option value="good_desc">SORT: HIGHEST GOOD</option>
+                <option value="good_asc">SORT: LOWEST GOOD</option>
+                <option value="name_asc">SORT: BUYER/STYLE (A-Z)</option>
+            </select>
+            <div class="mul-select" id="ms_slicer_fin_perf_buyer" style="max-width: 140px;"></div>
+            <div class="mul-select" id="ms_slicer_fin_perf_style" style="max-width: 140px;"></div>
+        </div>
+        <div class="chart-container-lg" id="wrap_fin_perf"><canvas id="finishingPerfChart"></canvas></div>
+        <div class="insight-wrapper" id="insight_fin_perf_wrapper">
+            <div class="insight-panel">
+                <div class="insight-inner" id="insight_fin_perf_inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid-triple">
+        <div class="glass-card">
+            <div class="kpi-title">
+                <span>TOP 3 DEFECT: SEWING</span>
+                <div class="kpi-title-controls">
+                    <button class="btn-insight" onclick="showInsight('def_sew')" title="Predictive Analysis"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg></button>
+                    <button class="btn-toggle"
+                        onclick="document.getElementById('fb_def_sew').classList.toggle('hidden-content')"
+                        title="Filter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </button>
+                    <button class="btn-toggle" onclick="toggleVisibility('wrap_def_sew', this)">-</button>
+                </div>
+            </div>
+            <div class="chart-filter-bar hidden-content" id="fb_def_sew">
+                <div class="mul-select" id="ms_slicer_sew_src" style="max-width: 80px;"></div>
+                <div class="mul-select" id="ms_slicer_sew" style="max-width: 80px;"></div>
+                <div class="mul-select" id="ms_slicer_sew_buyer" style="max-width: 80px;"></div>
+                <div class="mul-select" id="ms_slicer_sew_style" style="max-width: 80px;"></div>
+            </div>
+            <div class="chart-container-sm" id="wrap_def_sew"><canvas id="sewingDefChart"></canvas></div>
+            <div class="insight-wrapper" id="insight_def_sew_wrapper">
+                <div class="insight-panel">
+                    <div class="insight-inner" id="insight_def_sew_inner"></div>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card">
+            <div class="kpi-title">
+                <span>TOP 3 DEFECT: FINISHING</span>
+                <div class="kpi-title-controls">
+                    <button class="btn-insight" onclick="showInsight('def_fin')" title="Predictive Analysis"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg></button>
+                    <button class="btn-toggle"
+                        onclick="document.getElementById('fb_def_fin').classList.toggle('hidden-content')"
+                        title="Filter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </button>
+                    <button class="btn-toggle" onclick="toggleVisibility('wrap_def_fin', this)">-</button>
+                </div>
+            </div>
+            <div class="chart-filter-bar hidden-content" id="fb_def_fin">
+                <div class="mul-select" id="ms_slicer_fin_src" style="max-width: 80px;"></div>
+                <div class="mul-select" id="ms_slicer_fin_buyer" style="max-width: 80px;"></div>
+                <div class="mul-select" id="ms_slicer_fin_style" style="max-width: 80px;"></div>
+                <div class="mul-select" id="ms_slicer_fin_color" style="max-width: 80px;"></div>
+            </div>
+            <div class="chart-container-sm" id="wrap_def_fin"><canvas id="finishingDefChart"></canvas></div>
+            <div class="insight-wrapper" id="insight_def_fin_wrapper">
+                <div class="insight-panel">
+                    <div class="insight-inner" id="insight_def_fin_inner"></div>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card">
+            <div class="kpi-title">
+                <span>TOP 3 DEFECT: WASHING</span>
+                <div class="kpi-title-controls">
+                    <button class="btn-insight" onclick="showInsight('def_was')" title="Predictive Analysis"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg></button>
+                    <button class="btn-toggle"
+                        onclick="document.getElementById('fb_def_was').classList.toggle('hidden-content')"
+                        title="Filter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </button>
+                    <button class="btn-toggle" onclick="toggleVisibility('wrap_def_was', this)">-</button>
+                </div>
+            </div>
+            <div class="chart-filter-bar hidden-content" id="fb_def_was">
+                <div class="mul-select" id="ms_slicer_was" style="max-width: 90px;"></div>
+                <div class="mul-select" id="ms_slicer_was_buyer" style="max-width: 90px;"></div>
+                <div class="mul-select" id="ms_slicer_was_style" style="max-width: 90px;"></div>
+                <div class="mul-select" id="ms_slicer_was_color" style="max-width: 90px;"></div>
+            </div>
+            <div class="chart-container-sm" id="wrap_def_was"><canvas id="washingDefChart"></canvas></div>
+            <div class="insight-wrapper" id="insight_def_was_wrapper">
+                <div class="insight-panel">
+                    <div class="insight-inner" id="insight_def_was_inner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="glass-card">
+        <div class="kpi-title">
+            <span>DAILY TREND: DEFECT RATE BY AREA (WITH DEFECT DETAILS)</span>
+            <div class="kpi-title-controls">
+                <button class="btn-insight" onclick="showInsight('top_def_trend')" title="Predictive Analysis"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></button>
+                <button class="btn-toggle"
+                    onclick="document.getElementById('fb_top_def_trend').classList.toggle('hidden-content')"
+                    title="Filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </button>
+                <button class="btn-toggle" onclick="toggleVisibility('wrap_top_def_trend', this)">-</button>
+            </div>
+        </div>
+        <div class="chart-filter-bar hidden-content" id="fb_top_def_trend">
+            <div class="mul-select" id="ms_slicer_tdt_section" style="max-width: 100px;"></div>
+            <div class="mul-select" id="ms_slicer_tdt_area" style="max-width: 120px;"></div>
+            <div class="mul-select" id="ms_slicer_tdt_defect" style="max-width: 120px;"></div>
+        </div>
+        <div class="chart-container-lg" id="wrap_top_def_trend"><canvas id="topDefTrendChart"></canvas></div>
+        <div class="insight-wrapper" id="insight_top_def_trend_wrapper">
+            <div class="insight-panel">
+                <div class="insight-inner" id="insight_top_def_trend_inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid-large">
+        <div class="glass-card">
+            <div class="kpi-title">
+                <span style="color: var(--danger);">TOP 3 CRITICAL BUYER (HIGH DEFECT)</span>
+                <div class="kpi-title-controls">
+                    <button class="btn-insight" onclick="showInsight('critical_buyer')" title="Predictive Analysis"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg></button>
+                    <button class="btn-toggle"
+                        onclick="document.getElementById('fb_alert_cards').classList.toggle('hidden-content')"
+                        title="Filter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                    </button>
+                    <button class="btn-toggle" onclick="toggleVisibility('wrap_alert_cards', this)">-</button>
+                </div>
+            </div>
+            <div class="chart-filter-bar hidden-content" id="fb_alert_cards">
+                <div class="mul-select" id="ms_slicer_buyer_area" style="max-width: 100px;"></div>
+                <div class="mul-select" id="ms_slicer_buyer_line" style="max-width: 100px;"></div>
+            </div>
+            <div id="wrap_alert_cards"
+                style="padding: 15px; display: flex; flex-direction: column; gap: 12px; justify-content: center; min-height: 260px;">
+                <div style="text-align:center; color: var(--text-sub); font-weight:700;">Memuat Data...</div>
+            </div>
+            <div class="insight-wrapper" id="insight_critical_buyer_wrapper">
+                <div class="insight-panel">
+                    <div class="insight-inner" id="insight_critical_buyer_inner"></div>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card">
+            <div class="kpi-title">
+                <span>CRITICAL LINE (SEWING)</span>
+                <div class="kpi-title-controls">
+                    <button class="btn-insight" onclick="showInsight('critical_line')" title="Predictive Analysis"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg></button>
+                    <button class="btn-toggle" onclick="toggleVisibility('wrap_crit_chart', this)">-</button>
+                </div>
+            </div>
+            <div class="chart-container" id="wrap_crit_chart"><canvas id="lineChart"></canvas></div>
+            <div class="insight-wrapper" id="insight_critical_line_wrapper">
+                <div class="insight-panel">
+                    <div class="insight-inner" id="insight_critical_line_inner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/spv-dashboard.js"></script>
+</body>
+
+</html>
